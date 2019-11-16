@@ -1,6 +1,7 @@
 package nameservice
 
 import (
+	"github.com/arthaszeng/nameservice/x/nameservice/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 
@@ -25,7 +26,7 @@ func NewKeeper(coinKeeper bank.Keeper, storeKey sdk.StoreKey, cdc *codec.Codec) 
 }
 
 // Sets the entire Whois metadata struct for a name
-func (keeper Keeper) SetWhois(ctx sdk.Context, name string, whois Whois) {
+func (keeper Keeper) SetWhois(ctx sdk.Context, name string, whois types.Whois) {
 	if whois.Owner.Empty() {
 		return
 	}
@@ -34,13 +35,13 @@ func (keeper Keeper) SetWhois(ctx sdk.Context, name string, whois Whois) {
 }
 
 // Gets the entire Whois metadata struct for a name
-func (keeper Keeper) GetWhois(ctx sdk.Context, name string) Whois {
+func (keeper Keeper) GetWhois(ctx sdk.Context, name string) types.Whois {
 	store := ctx.KVStore(keeper.storeKey)
 	if !store.Has([]byte(name)) {
-		return NewWhois()
+		return types.NewWhois()
 	}
 	bytesOfValue := store.Get([]byte(name))
-	var whois Whois
+	var whois types.Whois
 	keeper.cdc.MustUnmarshalBinaryBare(bytesOfValue, &whois)
 	return whois
 }

@@ -1,11 +1,11 @@
-package nameservice
+package types
 
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 type Whois struct {
-	Value string
-	Owner sdk.AccAddress
-	Price sdk.Coins
+	Value string         `json:"value"`
+	Owner sdk.AccAddress `json:"owner"`
+	Price sdk.Coins      `json:"price"`
 }
 
 var miniPrice = sdk.Coins{sdk.NewInt64Coin("nametoken", 1)}
