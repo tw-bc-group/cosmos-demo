@@ -11,13 +11,10 @@ type MsgSetName struct {
 	Owner sdk.AccAddress `json:"owner"`
 }
 
-const (
-	RouteKey = "nameservice"
-	MsgType  = "set_name"
-)
+const RouteKey = "nameservice"
 
 var (
-	cdc = codec.New()
+	msgType = "set_name"
 )
 
 func (msg MsgSetName) Route() string {
@@ -25,7 +22,7 @@ func (msg MsgSetName) Route() string {
 }
 
 func (msg MsgSetName) Type() string {
-	return MsgType
+	return msgType
 }
 
 func (msg MsgSetName) ValidateBasic() sdk.Error {
@@ -41,7 +38,7 @@ func (msg MsgSetName) ValidateBasic() sdk.Error {
 }
 
 func (msg MsgSetName) GetSignBytes() []byte {
-	return sdk.MustSortJSON(cdc.MustMarshalJSON(msg))
+	return sdk.MustSortJSON(codec.Cdc.MustMarshalJSON(msg))
 }
 
 func (msg MsgSetName) GetSigners() []sdk.AccAddress {
