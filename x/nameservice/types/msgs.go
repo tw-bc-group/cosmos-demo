@@ -1,37 +1,53 @@
 package types
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// MsgSetName defines a SetName message
 type MsgSetName struct {
 	Name  string         `json:"name"`
 	Value string         `json:"value"`
 	Owner sdk.AccAddress `json:"owner"`
 }
 
+const (
+	RouteKey = "nameservice"
+	MsgType  = "set_name"
+)
+
+var (
+	cdc = codec.New()
+)
+
 func (msg MsgSetName) Route() string {
-	panic("implement me")
+	return RouteKey
 }
 
 func (msg MsgSetName) Type() string {
-	panic("implement me")
+	return MsgType
 }
 
 func (msg MsgSetName) ValidateBasic() sdk.Error {
-	panic("implement me")
+	if msg.Owner.Empty() {
+		return sdk.ErrInvalidAddress(msg.Owner.String())
+	}
+
+	if len(msg.Name) == 0 || len(msg.Value) == 0 {
+		return sdk.ErrUnknownRequest("Name and/or value cannot be empty.")
+	}
+
+	return nil
 }
 
 func (msg MsgSetName) GetSignBytes() []byte {
-	panic("implement me")
+	return sdk.MustSortJSON(cdc.MustMarshalJSON(msg))
 }
 
 func (msg MsgSetName) GetSigners() []sdk.AccAddress {
-	panic("implement me")
+	return []sdk.AccAddress{msg.Owner}
 }
 
-// NewMsgSetName is a constructor function for MsgSetName
 func NewMsgSetName(name string, value string, owner sdk.AccAddress) MsgSetName {
 	return MsgSetName{
 		Name:  name,
