@@ -2,6 +2,9 @@ package nameservice
 
 import (
 	"encoding/json"
+	"github.com/arthaszeng/nameservice/x/nameservice/client/cli"
+	"github.com/arthaszeng/nameservice/x/nameservice/client/rest"
+	"github.com/arthaszeng/nameservice/x/nameservice/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 var (
@@ -21,31 +24,38 @@ type AppModuleBasic struct {
 }
 
 func (appModuleBasic AppModuleBasic) Name() string {
-	panic("implement me")
+	return "nameservice"
 }
 
-func (appModuleBasic AppModuleBasic) RegisterCodec(*codec.Codec) {
-	panic("implement me")
+func (appModuleBasic AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
+	types.RegisterCodec(cdc)
 }
 
 func (appModuleBasic AppModuleBasic) DefaultGenesis() json.RawMessage {
-	panic("implement me")
+	return types.ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
-func (appModuleBasic AppModuleBasic) ValidateGenesis(json.RawMessage) error {
-	panic("implement me")
+func (appModuleBasic AppModuleBasic) ValidateGenesis(data json.RawMessage) error {
+	var genesisState GenesisState
+	err := types.ModuleCdc.UnmarshalJSON(data, &genesisState)
+
+	if err != nil {
+		return err
+	}
+
+	return ValidateGenesis(genesisState)
 }
 
-func (appModuleBasic AppModuleBasic) RegisterRESTRoutes(context.CLIContext, *mux.Router) {
-	panic("implement me")
+func (appModuleBasic AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, router *mux.Router) {
+	rest.RegisterRoutes(ctx, router, "nameservice")
 }
 
-func (appModuleBasic AppModuleBasic) GetTxCmd(*codec.Codec) *cobra.Command {
-	panic("implement me")
+func (appModuleBasic AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetQueryCmd("nameservice", cdc)
 }
 
-func (appModuleBasic AppModuleBasic) GetQueryCmd(*codec.Codec) *cobra.Command {
-	panic("implement me")
+func (appModuleBasic AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetTxCmd("nameservice", cdc)
 }
 
 type AppModule struct {
@@ -54,66 +64,53 @@ type AppModule struct {
 	coinKeeper bank.Keeper
 }
 
-func (appModule AppModule) Name() string {
-	panic("implement me")
+func NewAppModule(k Keeper, bankKeeper bank.Keeper) AppModule {
+	return AppModule{
+		AppModuleBasic: AppModuleBasic{},
+		keeper:         k,
+		coinKeeper:     bankKeeper,
+	}
 }
 
-func (appModule AppModule) RegisterCodec(*codec.Codec) {
-	panic("implement me")
+func (AppModule) Name() string {
+	return "nameservice"
 }
 
-func (appModule AppModule) DefaultGenesis() json.RawMessage {
-	panic("implement me")
+func (appModule AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState GenesisState
+	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	return InitGenesis(ctx, appModule.keeper, genesisState)
 }
 
-func (appModule AppModule) ValidateGenesis(json.RawMessage) error {
-	panic("implement me")
-}
-
-func (appModule AppModule) RegisterRESTRoutes(context.CLIContext, *mux.Router) {
-	panic("implement me")
-}
-
-func (appModule AppModule) GetTxCmd(*codec.Codec) *cobra.Command {
-	panic("implement me")
-}
-
-func (appModule AppModule) GetQueryCmd(*codec.Codec) *cobra.Command {
-	panic("implement me")
-}
-
-func (appModule AppModule) InitGenesis(sdk.Context, json.RawMessage) []types.ValidatorUpdate {
-	panic("implement me")
-}
-
-func (appModule AppModule) ExportGenesis(sdk.Context) json.RawMessage {
-	panic("implement me")
+func (appModule AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+	gs := ExportGenesis(ctx, appModule.keeper)
+	return types.ModuleCdc.MustMarshalJSON(gs)
 }
 
 func (appModule AppModule) RegisterInvariants(sdk.InvariantRegistry) {
-	panic("implement me")
+	//
 }
 
 func (appModule AppModule) Route() string {
-	panic("implement me")
+	return "nameservice"
 }
 
 func (appModule AppModule) NewHandler() sdk.Handler {
-	panic("implement me")
+	return NewHandler(appModule.keeper)
 }
 
 func (appModule AppModule) QuerierRoute() string {
-	panic("implement me")
+	return "nameservice"
 }
 
 func (appModule AppModule) NewQuerierHandler() sdk.Querier {
-	panic("implement me")
+	return NewQuerier(appModule.keeper)
 }
 
-func (appModule AppModule) BeginBlock(sdk.Context, types.RequestBeginBlock) {
-	panic("implement me")
+func (appModule AppModule) BeginBlock(sdk.Context, abci.RequestBeginBlock) {
+	//
 }
 
-func (appModule AppModule) EndBlock(sdk.Context, types.RequestEndBlock) []types.ValidatorUpdate {
-	panic("implement me")
+func (appModule AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }

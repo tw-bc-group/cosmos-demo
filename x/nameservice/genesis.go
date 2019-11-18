@@ -11,6 +11,7 @@ type GenesisState struct {
 	WhoisRecords []types.Whois `json:"whois_records"`
 }
 
+//should be nil or the data in param
 func NewGenesisState(whoIsRecords []types.Whois) GenesisState {
 	return GenesisState{WhoisRecords: whoIsRecords}
 }

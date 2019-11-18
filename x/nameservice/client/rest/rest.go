@@ -8,7 +8,7 @@ import (
 
 var restName = "name"
 
-func RegisterRoutes(cliContext context.CLIContext, router mux.Router, storeName string) {
+func RegisterRoutes(cliContext context.CLIContext, router *mux.Router, storeName string) {
 	router.HandleFunc(fmt.Sprintf("%s/names", storeName), namesHandler(cliContext, storeName)).Methods("GET")
 	router.HandleFunc(fmt.Sprintf("%s/names", storeName), buyNameHandler(cliContext)).Methods("POST")
 	router.HandleFunc(fmt.Sprintf("%s/names", storeName), setNameHandler(cliContext)).Methods("PUT")
