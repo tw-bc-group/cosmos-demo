@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -33,7 +32,7 @@ func (msg MsgBuyName) ValidateBasic() sdk.Error {
 }
 
 func (msg MsgBuyName) GetSignBytes() []byte {
-	return sdk.MustSortJSON(codec.Cdc.MustMarshalJSON(msg))
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners defines whose signature is required

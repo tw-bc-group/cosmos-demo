@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -38,7 +37,7 @@ func (msg MsgSetName) ValidateBasic() sdk.Error {
 }
 
 func (msg MsgSetName) GetSignBytes() []byte {
-	return sdk.MustSortJSON(codec.Cdc.MustMarshalJSON(msg))
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 func (msg MsgSetName) GetSigners() []sdk.AccAddress {
