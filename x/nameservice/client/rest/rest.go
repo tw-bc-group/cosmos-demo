@@ -11,12 +11,44 @@ import (
 	"net/http"
 )
 
+var restName = "name"
+
 func RegisterRoutes(cliContext context.CLIContext, router mux.Router, storeName string) {
 	router.HandleFunc(fmt.Sprintf("%s/names", storeName), namesHandler(cliContext, storeName)).Methods("GET")
 	router.HandleFunc(fmt.Sprintf("%s/names", storeName), buyNameHandler(cliContext)).Methods("POST")
 	router.HandleFunc(fmt.Sprintf("%s/names", storeName), setNameHandler(cliContext)).Methods("PUT")
-	router.HandleFunc(fmt.Sprintf("%s/names/name", storeName), resolveNameHandler(cliContext, storeName)).Methods("GET")
-	router.HandleFunc(fmt.Sprintf("%s/names/whois", storeName), resolveWhoisHandler(cliContext, storeName)).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/names/{%s}", storeName, restName), resolveNameHandler(cliContext, storeName)).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/names/{%s}/whois", storeName, restName), resolveWhoisHandler(cliContext, storeName)).Methods("GET")
+}
+
+func resolveWhoisHandler(cliContext context.CLIContext, storeName string) func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		vars := mux.Vars(request)
+		name := vars[restName]
+
+		res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/whois/%s", storeName, name), nil)
+		if err != nil {
+			rest.WriteErrorResponse(writer, http.StatusNotFound, err.Error())
+			return
+		}
+
+		rest.PostProcessResponse(writer, cliContext, res)
+	}
+}
+
+func resolveNameHandler(cliContext context.CLIContext, storeName string) func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		vars := mux.Vars(request)
+		name := vars[restName]
+
+		res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/resolve/%s", storeName, name), nil)
+		if err != nil {
+			rest.WriteErrorResponse(writer, http.StatusNotFound, err.Error())
+			return
+		}
+
+		rest.PostProcessResponse(writer, cliContext, res)
+	}
 }
 
 type setNameReq struct {
