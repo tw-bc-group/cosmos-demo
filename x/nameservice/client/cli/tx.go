@@ -60,5 +60,26 @@ func GetCmdBuyName(cdc *codec.Codec) *cobra.Command {
 }
 
 func GetCmdSetName(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "set-name [name] [value]",
+		Short: "set the value associated with a name you own",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliContext := context.NewCLIContext().WithCodec(cdc)
+			txBuilder := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
+			name := args[0]
+			value := args[1]
+			accAddress := cliContext.GetFromAddress()
+
+			msgSetName := types.NewMsgSetName(name, value, accAddress)
+			err := msgSetName.ValidateBasic()
+
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliContext, txBuilder, []sdk.Msg{msgSetName})
+		},
+	}
 }
