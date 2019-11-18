@@ -40,7 +40,7 @@ func (msg MsgBuyName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Buyer}
 }
 
-func newMsgBuyName(name string, bid sdk.Coins, buyer sdk.AccAddress) MsgBuyName {
+func NewMsgBuyName(name string, bid sdk.Coins, buyer sdk.AccAddress) MsgBuyName {
 	return MsgBuyName{
 		Name:  name,
 		Bid:   bid,

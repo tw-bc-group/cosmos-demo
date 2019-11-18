@@ -13,7 +13,7 @@ func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        "nameservice",
 		Short:                      "Query command for the name service",
-		DisableFlagParsing:         false,
+		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
