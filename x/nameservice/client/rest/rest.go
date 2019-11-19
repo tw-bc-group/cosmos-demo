@@ -2,22 +2,16 @@ package rest
 
 import (
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/client/context"
-
 	"github.com/gorilla/mux"
 )
 
-const (
-	restName = "name"
-)
+var restName = "name"
 
-// RegisterRoutes - Central function to define routes that get registered by the main application
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) {
-	r.HandleFunc(fmt.Sprintf("/%s/names", storeName), namesHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/names", storeName), buyNameHandler(cliCtx)).Methods("POST")
-	r.HandleFunc(fmt.Sprintf("/%s/names", storeName), setNameHandler(cliCtx)).Methods("PUT")
-	r.HandleFunc(fmt.Sprintf("/%s/names/{%s}", storeName, restName), resolveNameHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/names/{%s}/whois", storeName, restName), whoIsHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/names", storeName), deleteNameHandler(cliCtx)).Methods("DELETE")
+func RegisterRoutes(cliContext context.CLIContext, router *mux.Router, storeName string) {
+	router.HandleFunc(fmt.Sprintf("%s/names", storeName), namesHandler(cliContext, storeName)).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/names", storeName), buyNameHandler(cliContext)).Methods("POST")
+	router.HandleFunc(fmt.Sprintf("%s/names", storeName), setNameHandler(cliContext)).Methods("PUT")
+	router.HandleFunc(fmt.Sprintf("%s/names/{%s}", storeName, restName), resolveNameHandler(cliContext, storeName)).Methods("GET")
+	router.HandleFunc(fmt.Sprintf("%s/names/{%s}/whois", storeName, restName), resolveWhoisHandler(cliContext, storeName)).Methods("GET")
 }

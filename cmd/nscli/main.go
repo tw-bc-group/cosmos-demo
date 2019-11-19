@@ -1,9 +1,6 @@
 package main
 
 import (
-	"os"
-	"path"
-
 	app "github.com/arthaszeng/nameservice"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -18,6 +15,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/cli"
+	"os"
+	"path"
 )
 
 func main() {
@@ -25,7 +24,6 @@ func main() {
 
 	cdc := app.MakeCodec()
 
-	// Read in the configuration file for the sdk
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(sdk.Bech32PrefixAccAddr, sdk.Bech32PrefixAccPub)
 	config.SetBech32PrefixForValidator(sdk.Bech32PrefixValAddr, sdk.Bech32PrefixValPub)
@@ -37,13 +35,11 @@ func main() {
 		Short: "nameservice Client",
 	}
 
-	// Add --chain-id to persistent flags and mark it required
 	rootCmd.PersistentFlags().String(client.FlagChainID, "", "Chain ID of tendermint node")
 	rootCmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
 		return initConfig(rootCmd)
 	}
 
-	// Construct Root Command
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		client.ConfigCmd(app.DefaultCLIHome),
@@ -88,7 +84,6 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 		client.LineBreak,
 	)
 
-	// add modules' query commands
 	app.ModuleBasics.AddQueryCommands(queryCmd, cdc)
 
 	return queryCmd
@@ -111,7 +106,6 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		client.LineBreak,
 	)
 
-	// add modules' tx commands
 	app.ModuleBasics.AddTxCommands(txCmd, cdc)
 
 	return txCmd

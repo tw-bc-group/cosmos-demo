@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/arthaszeng/nameservice/x/nameservice/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -10,99 +8,78 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/spf13/cobra"
 )
 
 func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
-	nameserviceTxCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      "Nameservice transaction subcommands",
+	txCmd := &cobra.Command{
+		Use:                        "nameservice",
+		Short:                      "Name service transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	nameserviceTxCmd.AddCommand(client.PostCommands(
-		GetCmdBuyName(cdc),
+	txCmd.AddCommand(client.PostCommands(
 		GetCmdSetName(cdc),
-		GetCmdDeleteName(cdc),
+		GetCmdBuyName(cdc),
 	)...)
 
-	return nameserviceTxCmd
+	return txCmd
 }
 
-// GetCmdBuyName is the CLI command for sending a BuyName transaction
 func GetCmdBuyName(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "buy-name [name] [amount]",
-		Short: "bid for existing name or claim new name",
+		Short: "bid for existing name or claim a new name",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliContext := context.NewCLIContext().WithCodec(cdc)
+			txBuilder := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			coins, err := sdk.ParseCoins(args[1])
+			name := args[0]
+			bid := args[1]
+			accAddresses := cliContext.GetFromAddress()
+
+			coins, err := sdk.ParseCoins(bid)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgBuyName(args[0], coins, cliCtx.GetFromAddress())
-			err = msg.ValidateBasic()
+			msgBuyName := types.NewMsgBuyName(name, coins, accAddresses)
+			err = msgBuyName.ValidateBasic()
+
 			if err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return utils.GenerateOrBroadcastMsgs(cliContext, txBuilder, []sdk.Msg{msgBuyName})
 		},
 	}
 }
 
-// GetCmdSetName is the CLI command for sending a SetName transaction
 func GetCmdSetName(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "set-name [name] [value]",
-		Short: "set the value associated with a name that you own",
+		Short: "set the value associated with a name you own",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliContext := context.NewCLIContext().WithCodec(cdc)
+			txBuilder := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			name := args[0]
+			value := args[1]
+			accAddress := cliContext.GetFromAddress()
 
-			// if err := cliCtx.EnsureAccountExists(); err != nil {
-			// 	return err
-			// }
+			msgSetName := types.NewMsgSetName(name, value, accAddress)
+			err := msgSetName.ValidateBasic()
 
-			msg := types.NewMsgSetName(args[0], args[1], cliCtx.GetFromAddress())
-			err := msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
-			// return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, msgs)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-}
-
-// GetCmdDeleteName is the CLI command for sending a DeleteName transaction
-func GetCmdDeleteName(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "delete-name [name]",
-		Short: "delete the name that you own along with it's associated fields",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			msg := types.NewMsgDeleteName(args[0], cliCtx.GetFromAddress())
-			err := msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
-
-			// return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, msgs)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return utils.GenerateOrBroadcastMsgs(cliContext, txBuilder, []sdk.Msg{msgSetName})
 		},
 	}
 }

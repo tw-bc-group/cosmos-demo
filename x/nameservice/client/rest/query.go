@@ -2,52 +2,49 @@ package rest
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/cosmos/cosmos-sdk/client/context"
-
 	"github.com/cosmos/cosmos-sdk/types/rest"
-
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
-func resolveNameHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		paramType := vars[restName]
+func resolveWhoisHandler(cliContext context.CLIContext, storeName string) func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		vars := mux.Vars(request)
+		name := vars[restName]
 
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/resolve/%s", storeName, paramType), nil)
+		res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/whois/%s", storeName, name), nil)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			rest.WriteErrorResponse(writer, http.StatusNotFound, err.Error())
 			return
 		}
 
-		rest.PostProcessResponse(w, cliCtx, res)
+		rest.PostProcessResponse(writer, cliContext, res)
 	}
 }
 
-func whoIsHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		paramType := vars[restName]
+func resolveNameHandler(cliContext context.CLIContext, storeName string) func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		vars := mux.Vars(request)
+		name := vars[restName]
 
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/whois/%s", storeName, paramType), nil)
+		res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/resolve/%s", storeName, name), nil)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			rest.WriteErrorResponse(writer, http.StatusNotFound, err.Error())
 			return
 		}
 
-		rest.PostProcessResponse(w, cliCtx, res)
+		rest.PostProcessResponse(writer, cliContext, res)
 	}
 }
 
-func namesHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/names", storeName), nil)
+func namesHandler(cliContext context.CLIContext, storeName string) func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/namse", storeName), nil)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-			return
+			rest.WriteErrorResponse(writer, http.StatusNotFound, err.Error())
 		}
-		rest.PostProcessResponse(w, cliCtx, res)
+
+		rest.PostProcessResponse(writer, cliContext, res)
 	}
 }

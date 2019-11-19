@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-
 	"github.com/arthaszeng/nameservice/x/nameservice/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -11,85 +10,85 @@ import (
 )
 
 func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
-	nameserviceQueryCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the nameservice module",
+	queryCmd := &cobra.Command{
+		Use:                        "nameservice",
+		Short:                      "Query command for the name service",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	nameserviceQueryCmd.AddCommand(client.GetCommands(
-		GetCmdResolveName(storeKey, cdc),
-		GetCmdWhois(storeKey, cdc),
-		GetCmdNames(storeKey, cdc),
+
+	queryCmd.AddCommand(client.GetCommands(
+		GetCmdQueryResolve(storeKey, cdc),
+		GetCmdQueryWhois(storeKey, cdc),
+		GetCmdQueryNames(storeKey, cdc),
 	)...)
-	return nameserviceQueryCmd
+
+	return queryCmd
 }
 
-// GetCmdResolveName queries information about a name
-func GetCmdResolveName(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryNames(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "names",
+		Short: "names",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliContext := context.NewCLIContext()
+			res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/names", queryRoute), nil)
+
+			if err != nil {
+				fmt.Printf("Cannot get query of names \n")
+				return nil
+			}
+
+			var output types.QueryResNames
+			cdc.MustUnmarshalJSON(res, &output)
+			return cliContext.PrintOutput(output)
+		},
+	}
+}
+
+func GetCmdQueryWhois(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "whois [name]",
+		Short: "whois name",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliContext := context.NewCLIContext().WithCodec(cdc)
+			name := args[0]
+
+			res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/whois/%s", queryRoute, name), nil)
+
+			if err != nil {
+				fmt.Printf("Cannot whois name: %s\n", name)
+				return nil
+			}
+
+			var output types.Whois
+			cdc.MustUnmarshalJSON(res, &output)
+			return cliContext.PrintOutput(output)
+		},
+	}
+}
+
+func GetCmdQueryResolve(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "resolve [name]",
 		Short: "resolve name",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliContext := context.NewCLIContext().WithCodec(cdc)
 			name := args[0]
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/resolve/%s", queryRoute, name), nil)
+			res, _, err := cliContext.QueryWithData(fmt.Sprintf("custom/%s/resolve/%s", queryRoute, name), nil)
+
 			if err != nil {
-				fmt.Printf("could not resolve name - %s \n", name)
+				fmt.Printf("Could not resolve name: %s\n", name)
 				return nil
 			}
 
-			var out types.QueryResResolve
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
-		},
-	}
-}
-
-// GetCmdWhois queries information about a domain
-func GetCmdWhois(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "whois [name]",
-		Short: "Query whois info of name",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			name := args[0]
-
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/whois/%s", queryRoute, name), nil)
-			if err != nil {
-				fmt.Printf("could not resolve whois - %s \n", name)
-				return nil
-			}
-
-			var out types.Whois
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
-		},
-	}
-}
-
-// GetCmdNames queries a list of all names
-func GetCmdNames(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "names",
-		Short: "names",
-		// Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/names", queryRoute), nil)
-			if err != nil {
-				fmt.Printf("could not get query names\n")
-				return nil
-			}
-
-			var out types.QueryResNames
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var output types.QueryResResolve
+			cdc.MustUnmarshalJSON(res, &output)
+			return cliContext.PrintOutput(output)
 		},
 	}
 }
