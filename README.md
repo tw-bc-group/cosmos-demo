@@ -60,16 +60,45 @@ This repo is target to give developers a hands on guide to quickly build up a bl
           └── module.go   #most important, the application module entry
   ```
 
-  
+Start by putting this repo under your GOPATH, and start the trip:
 
-
+```bash
+#put this repo under below path
+$GOPATH/src/github.com/{ .Username }/nameservice
+#then it will look like this
+/Users/cwzeng/.go/src/github.com/arthaszeng/nameservice
+#jump into that path
+cd $GOPATH/src/github.com/{ .Username }/nameservice
+git checkout develop
+```
 
 ## DApp Context and Design
+The goal of the application you are building is to let users buy names and to set a value these names resolve to. The owner of a given name will be the current highest bidder. In this section, you will learn how these simple requirements translate to application design.
 
+Here are the modules you will need for the nameservice application:
 
+- `auth`: This module defines accounts and fees and gives access to these functionalities to the rest of your application.
+- `bank`: This module enables the application to create and manage tokens and token balances.
+- `staking` : This module enables the application to have validators that people can delegate to.
+- `distribution` : This module give a functional way to passively distribute rewards between validators and delegators.
+- `slashing` : This module disincentivizes people with value staked in the network, ie. Validators.
+- `supply` : This module holds the total supply of the chain.
+- `nameservice`: This module does not exist yet! It will handle the core logic for the `nameservice` application you are building. It is the main piece of software you have to work on to build your application.
 
 ## Entry of Cosmos SDK - AppModule
+Before we start build our application, we need to take a view of the appModule as entry which is Cosmos-SDK required.<br/>
+Jump into `x/nameservice/module.go`<br/>
+The code blow is to test our AppModule and AppModuleBasic has implemented the functions of the interfaces.
+```
+var (
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+)
+```
+Then you can see the functions we need to implement, such like `NewQuerierHandler` `NewHandler` and etc, those requirements will trigger the implementation, that's the reason why we need to build the structure of this demo like shown in previous section.<br/> 
+This file is the entry of our nameservice app module, no need to care about the implementations for now, next, let's take a look at `GenesisState`.  
 
+## GenesisState
 
 
 ## Types 
@@ -98,14 +127,7 @@ This repo is target to give developers a hands on guide to quickly build up a bl
 
 ### REST
 
-
-
-## GenesisState
-
-
-
 ## App <-- Appbase
-
 
 
 ## Go Entry Points
