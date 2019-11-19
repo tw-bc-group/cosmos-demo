@@ -2,6 +2,8 @@ package nameservice
 
 import (
 	"encoding/json"
+	"github.com/arthaszeng/nameservice/x/nameservice/client/cli"
+	"github.com/arthaszeng/nameservice/x/nameservice/client/rest"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -9,8 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/client/cli"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/client/rest"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
