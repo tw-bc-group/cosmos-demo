@@ -51,11 +51,11 @@ func (appModuleBasic AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, 
 }
 
 func (appModuleBasic AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(types.ModuleName, cdc)
+	return cli.GetTxCmd(types.ModuleName, cdc)
 }
 
 func (appModuleBasic AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(types.ModuleName, cdc)
+	return cli.GetQueryCmd(types.ModuleName, cdc)
 }
 
 type AppModule struct {
