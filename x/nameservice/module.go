@@ -24,7 +24,7 @@ type AppModuleBasic struct {
 }
 
 func (appModuleBasic AppModuleBasic) Name() string {
-	return "nameservice"
+	return types.ModuleName
 }
 
 func (appModuleBasic AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
@@ -47,15 +47,15 @@ func (appModuleBasic AppModuleBasic) ValidateGenesis(data json.RawMessage) error
 }
 
 func (appModuleBasic AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, router *mux.Router) {
-	rest.RegisterRoutes(ctx, router, "nameservice")
+	rest.RegisterRoutes(ctx, router, types.ModuleName)
 }
 
 func (appModuleBasic AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd("nameservice", cdc)
+	return cli.GetQueryCmd(types.ModuleName, cdc)
 }
 
 func (appModuleBasic AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd("nameservice", cdc)
+	return cli.GetTxCmd(types.ModuleName, cdc)
 }
 
 type AppModule struct {
@@ -73,7 +73,7 @@ func NewAppModule(k Keeper, bankKeeper bank.Keeper) AppModule {
 }
 
 func (AppModule) Name() string {
-	return "nameservice"
+	return types.ModuleName
 }
 
 func (appModule AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
@@ -92,7 +92,7 @@ func (appModule AppModule) RegisterInvariants(sdk.InvariantRegistry) {
 }
 
 func (appModule AppModule) Route() string {
-	return "nameservice"
+	return types.ModuleName
 }
 
 func (appModule AppModule) NewHandler() sdk.Handler {
@@ -100,7 +100,7 @@ func (appModule AppModule) NewHandler() sdk.Handler {
 }
 
 func (appModule AppModule) QuerierRoute() string {
-	return "nameservice"
+	return types.ModuleName
 }
 
 func (appModule AppModule) NewQuerierHandler() sdk.Querier {

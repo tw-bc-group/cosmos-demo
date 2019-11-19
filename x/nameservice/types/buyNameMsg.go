@@ -10,7 +10,7 @@ type MsgBuyName struct {
 	Buyer sdk.AccAddress `json:"buyer"`
 }
 
-const RouterKey = "nameservice"
+const RouterKey = StoreKey
 
 func (msg MsgBuyName) Route() string { return RouterKey }
 

@@ -3,7 +3,7 @@ package nameservice
 import (
 	"encoding/json"
 	"github.com/arthaszeng/nameservice/x/nameservice"
-	"github.com/arthaszeng/nameservice/x/nameservice/types"
+	. "github.com/arthaszeng/nameservice/x/nameservice/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,10 +67,10 @@ type nameServiceApp struct {
 
 func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 	cdc := MakeCodec()
-	bApp := baseapp.NewBaseApp(types.ModuleName, logger, db, auth.DefaultTxDecoder(cdc))
+	bApp := baseapp.NewBaseApp(ModuleName, logger, db, auth.DefaultTxDecoder(cdc))
 
 	keys := sdk.NewKVStoreKeys(baseapp.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, "nameservice")
+		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, StoreKey)
 
 	tKeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -146,7 +146,7 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 
 	app.nsKeeper = nameservice.NewKeeper(
 		app.bankKeeper,
-		keys["nameservice"],
+		keys[StoreKey],
 		app.cdc,
 	)
 
@@ -172,7 +172,7 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 		auth.ModuleName,
 		bank.ModuleName,
 		slashing.ModuleName,
-		types.ModuleName,
+		ModuleName,
 		supply.ModuleName,
 		genutil.ModuleName,
 	)
