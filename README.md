@@ -99,15 +99,45 @@ Then you can see the functions we need to implement, such like `NewQuerierHandle
 This file is the entry of our nameservice app module, no need to care about the implementations for now, next, let's take a look at `GenesisState`.  
 
 ## GenesisState
+The AppModule interface includes a number of functions for use in initializing and exporting GenesisState for the chain. The `ModuleBasicManager` calls these functions on each module when starting, stopping or exporting the chain. Here is a very basic implementation that you can expand upon.
 
+Go to `x/nameservice/genesis.go` and see the work of this part.
+
+A few notes about the above code:
+
+- `ValidateGenesis()` validates the provided genesis state to ensure that expected invariants hold
+- `DefaultGenesisState()` is used mostly for testing. This provides a minimal GenesisState.
+- `InitGenesis()` is called on chain start, this function imports genesis state into the keeper.
+- `ExportGenesis()` is called after stopping the chain, this function loads application state into a GenesisState stuct to later be exported to `genesis.json` alongside data from the other modules.
 
 ## Types 
+Okay, we have already seen the requirements of our nameservice app module from Cosmos-SDK, let's think about our implementations from this section. The first thing we're going to do is define a struct that holds all the metadata of a name. We will call this struct Whois after the ICANN DNS terminology.
 
+### `types.go`
+
+Begin by creating the file `./x/nameservice/types/types.go` to hold the customs types for your module. In Cosmos SDK applications, the convention is that modules live in the `./x/` folder.
+
+## Whois
+
+Each name will have three pieces of data associated with it.
+
+- Value - The value that a name resolves to. This is just an arbitrary string, but in the future you can modify this to require it fitting a specific format, such as an IP address, DNS Zone file, or blockchain address.
+- Owner - The address of the current owner of the name
+- Price - The price you will need to pay in order to buy the name
 
 
 ## Keeper
+The main core of a Cosmos SDK module is a piece called the `Keeper`. It is what handles interaction with the store, has references to other keepers for cross-module interactions, and contains most of the core functionality of a module.
 
+### Keeper Struct
 
+To start your SDK module, define your `nameservice.Keeper` in `./x/nameservice/keeper.go` file. <br/>
+
+A couple of notes about the above code:
+- 3 different `cosmos-sdk` packages are imported: - [`codec`](https://godoc.org/github.com/cosmos/cosmos-sdk/codec) - the `codec` provides tools to work with the Cosmos encoding format, [Amino](https://github.com/tendermint/go-amino). - [`bank`](https://godoc.org/github.com/cosmos/cosmos-sdk/x/bank) - the `bank` module controls accounts and coin transfers. - [`types`](https://godoc.org/github.com/cosmos/cosmos-sdk/types) - `types` contains commonly used types throughout the SDK.
+- The `Keeper` struct. In this keeper there are a couple of key pieces: - [`bank.Keeper`](https://godoc.org/github.com/cosmos/cosmos-sdk/x/bank#Keeper) - This is a reference to the `Keeper` from the `bank` module. Including it allows code in this module to call functions from the `bank` module. The SDK uses an [object capabilities](https://en.wikipedia.org/wiki/Object-capability_model) approach to accessing sections of the application state. This is to allow developers to employ a least authority approach, limiting the capabilities of a faulty or malicious module from affecting parts of state it doesn't need access to. - [`*codec.Codec`](https://godoc.org/github.com/cosmos/cosmos-sdk/codec#Codec) - This is a pointer to the codec that is used by Amino to encode and decode binary structs. - [`sdk.StoreKey`](https://godoc.org/github.com/cosmos/cosmos-sdk/types#StoreKey) - This is a store key which gates access to a `sdk.KVStore` which persists the state of your application: the Whois struct that the name points to (i.e. `map[name]Whois`).
+
+> _*NOTE*_: This function uses the [`sdk.Context`](https://godoc.org/github.com/cosmos/cosmos-sdk/types#Context). This object holds functions to access a number of important pieces of the state like `blockHeight` and `chainID`.
 
 ## Message
 
