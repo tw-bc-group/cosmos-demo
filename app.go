@@ -20,6 +20,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
+	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -235,4 +236,24 @@ func (app *nameServiceApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBl
 }
 func (app *nameServiceApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.moduleManager.EndBlock(ctx, req)
+}
+
+func (app *nameServiceApp) LoadHeight(height int64) error {
+	return app.LoadVersion(height, app.keys[baseapp.MainStoreKey])
+}
+
+func (app *nameServiceApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string,
+) (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
+
+	ctx := app.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
+
+	genState := app.moduleManager.ExportGenesis(ctx)
+	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	validators = staking.WriteValidators(ctx, app.stakingKeeper)
+
+	return appState, validators, nil
 }
