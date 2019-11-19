@@ -22,9 +22,13 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
+	"os"
 )
 
 var (
+	DefaultCLIHome  = os.ExpandEnv("$HOME/.nscli")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.nsd")
+
 	ModuleBasics = module.NewBasicManager(
 		genaccounts.AppModuleBasic{},
 		genutil.AppModuleBasic{},
