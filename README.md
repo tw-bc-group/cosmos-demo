@@ -113,11 +113,11 @@ A few notes about the above code:
 ## Types 
 Okay, we have already seen the requirements of our nameservice app module from Cosmos-SDK, let's think about our implementations from this section. The first thing we're going to do is define a struct that holds all the metadata of a name. We will call this struct Whois after the ICANN DNS terminology.
 
-### `types.go`
+#### `types.go`
 
 Begin by creating the file `./x/nameservice/types/types.go` to hold the customs types for your module. In Cosmos SDK applications, the convention is that modules live in the `./x/` folder.
 
-## Whois
+#### Whois
 
 Each name will have three pieces of data associated with it.
 
@@ -129,7 +129,7 @@ Each name will have three pieces of data associated with it.
 ## Keeper
 The main core of a Cosmos SDK module is a piece called the `Keeper`. It is what handles interaction with the store, has references to other keepers for cross-module interactions, and contains most of the core functionality of a module.
 
-### Keeper Struct
+#### Keeper Struct
 
 To start your SDK module, define your `nameservice.Keeper` in `./x/nameservice/keeper.go` file. <br/>
 
@@ -140,33 +140,174 @@ A couple of notes about the above code:
 > _*NOTE*_: This function uses the [`sdk.Context`](https://godoc.org/github.com/cosmos/cosmos-sdk/types#Context). This object holds functions to access a number of important pieces of the state like `blockHeight` and `chainID`.
 
 ## Message
+Now that we have the `Keeper` setup, it is time to build the `Msgs` and `Handlers` that actually allow users to buy names and set values for them.
 
+`Msgs` trigger state transitions. `Msgs` are wrapped in [`Txs`](https://github.com/cosmos/cosmos-sdk/blob/master/types/tx_msg.go#L34-L38) that clients submit to the network. The Cosmos SDK wraps and unwraps `Msgs` from `Txs`, which means, as an app developer, you only have to define `Msgs`. `Msgs` must satisfy the following interface (we'll implement all of these in the next section):
+```go
+// Transactions messages must fulfill the Msg
+type Msg interface {
+	// Return the message type.
+	// Must be alphanumeric or empty.
+	Type() string
 
+	// Returns a human-readable string for the message, intended for utilization
+	// within tags
+	Route() string
+
+	// ValidateBasic does a simple validation check that
+	// doesn't require access to any other information.
+	ValidateBasic() Error
+
+	// Get the canonical byte representation of the Msg.
+	GetSignBytes() []byte
+
+	// Signers returns the addrs of signers that must sign.
+	// CONTRACT: All signatures must be present to be valid.
+	// CONTRACT: Returns addrs in some deterministic order.
+	GetSigners() []AccAddress
+}
+```
+In this demo, there are two msgs `x/nameservice/types/buyNameMsg.go` and `x/nameservice/types/setNameMsg.go`, both of msgs must implement above interface's functions. <br/>
+
+Especially, there is another types of messages named `querier` which is essentially msg but just for querying instead of tx.
 
 ## Handler
+`Handlers` define the action that needs to be taken (which stores need to get updated, how, and under what conditions) when a given `Msg` is received.
 
+In this module you have three types of `Msgs` that users can send to interact with the application state: [`SetName`](set-name.md), [`BuyName`](./buy-name.md) and [`DeleteName`](./delete-name.md). They will each have an associated `Handler`.<br/>
 
+As we mentioned before, tx handler and query handler are separated functions need to be implemented in Cosmos-SDK's appModule requirements, therefore, there is another handler `querier` at root path of `/x/nameservice` which is routes for querying and it's similar with `handler`.
 
 ## Codec
 
+To [register your types with Amino](https://github.com/tendermint/go-amino#registering-types) so that they can be encoded/decoded, there is a bit of code that needs to be placed in `./x/nameservice/types/codec.go`. Any interface you create and any struct that implements an interface needs to be declared in the `RegisterCodec` function. In this module the three `Msg` implementations (`SetName`, `BuyName` and `DeleteName`) need to be registered, but your `Whois` query return type does not. In addition, we define a module specific codec for use later.
 
+## Command
+#### Cli
+The Cosmos SDK uses the [`cobra`](https://github.com/spf13/cobra) library for CLI interactions. This library makes it easy for each module to expose its own commands. To get started defining the user's CLI interactions with the app module, create the following files:
 
-## Command 
+- `./x/nameservice/client/cli/query.go`
+- `./x/nameservice/client/cli/tx.go`
 
-### Cli
+***Queries***
+
+Start in `query.go`. Here, define `cobra.Command`s for each of the modules `Queriers` (`resolve`, and `whois`):
+
+`./nameservice/x/nameservice/client/cli/query.go`
+
+Notes on the above code:
+
+- The CLI introduces a new `context`: [`CLIContext`](https://godoc.org/github.com/cosmos/cosmos-sdk/client/context#CLIContext). It carries data about user input and application configuration that are needed for CLI interactions.
+- The `path` required for the `cliCtx.QueryWithData()` function maps directly to the names in your query router.
+  - The first part of the path is used to differentiate the types of queries possible to SDK applications: `custom` is for `Queriers`.
+  - The second piece (`nameservice`) is the name of the module to route the query to.
+  - Finally there is the specific querier in the module that will be called.
+  - In this example the fourth piece is the query. This works because the query parameter is a simple string. To enable more complex query inputs you need to use the second argument of the [`.QueryWithData()`](https://godoc.org/github.com/cosmos/cosmos-sdk/client/context#CLIContext.QueryWithData) function to pass in `data`. For an example of this see the [queriers in the Staking module](https://github.com/cosmos/cosmos-sdk/blob/develop/x/stake/querier/querier.go#L103).
+
+***Transactions***
+
+Now that the query interactions are defined, it is time to move on to transaction generation in `tx.go`:
+
+`./nameservice/x/nameservice/client/cli/tx.go`
+
+Notes on the above code:
+
+- The `authcmd` package is used here. [The godocs have more information on usage](https://godoc.org/github.com/cosmos/cosmos-sdk/x/auth/client/cli#GetAccountDecoder). It provides access to accounts controlled by the CLI and facilitates signing.
 
 ### REST
 
+App module can also expose a REST interface to allow programatic access to the module's functionality. To get started create a file to hold the HTTP handlers.<br/>
+
+- ***Routes***
+
+    First, define the REST client interface for your module in a `RegisterRoutes` function. Have the routes all start with your module name to prevent name space collisions with other modules' routes:
+`./x/nameservice/client/rest/rest.go`
+
+- ***Query Handlers***
+    
+    Create a `query.go` file to place all the querys in.
+
+    Next, its time to define the handlers mentioned above. These will be very similar to the CLI methods defined earlier. Start with the queries `whois` and `resolve`:
+
+    `/nameservice/x/nameservice/client/rest/query.go`
+
+    Notes on the above code:
+    
+    - Notice we are using the same `cliCtx.QueryWithData` function to fetch the data
+    - These functions are almost the same as the corresponding CLI functionality
+
+- ***Tx Handlers***
+
+    First define a `tx.go` file to hold all your tx rest endpoints.
+    
+    Now define the `buyName`, `setName` and `deleteName` transaction routes. Notice these aren't actually sending the transactions to buy, set and delete names. That would require sending a password along with the request which would be a security issue. Instead these endpoints build and return each specific transaction which can then be signed in a secure manner and afterwards broadcast to the network using a standard endpoint like `/txs`.
+    
+    `./nameservice/x/nameservice/client/rest/tx.go`
+    
+    Notes on the above code:
+    
+    - The [`BaseReq`](https://godoc.org/github.com/cosmos/cosmos-sdk/client/utils#BaseReq) contains the basic required fields for making a transaction (which key to use, how to decode it, which chain you are on, etc...) and is designed to be embedded as shown.
+    - `baseReq.ValidateBasic` handles setting the response code for you and therefore you don't need to worry about handling errors or successes when using those functions
+
 ## App <-- Appbase
+
+Now that app module is ready, it can be incorporated in the `./app.go` file, along with the other two modules [`auth`](https://godoc.org/github.com/cosmos/cosmos-sdk/x/auth) and [`bank`](https://godoc.org/github.com/cosmos/cosmos-sdk/x/bank). Let's look at how to adding new nameservice module to the imports `	"github.com/arthaszeng/nameservice/x/nameservice"`.<br/>
+
+Basically, the `./app.go` file defines the `nameServiceApp` struct, and how to new and initiate a `nameServiceApp`, configuring the dependencies, as well as implementing the BaseApp interface. <br/>
+
+In the struct of `nameServiceApp`, we need to let it 'extends' BaseApp, then add the stores' keys and the `Keepers` into it.<br/>
+
+Beside that, when you are going to dive into this file, the best entry is the constructor `NewNameServiceApp`. <br/>
+
+The constructor needs to:
+
+- Instantiate required `Keepers` from each desired module.
+- Generate `storeKeys` required by each `Keeper`.
+- Register `Handler`s from each module. The `AddRoute()` method from `baseapp`'s `router` is used to this end.
+- Register `Querier`s from each module. The `AddRoute()` method from `baseapp`'s `queryRouter` is used to this end.
+- Mount `KVStore`s to the provided keys in the `baseApp` multistore.
+- Set the `initChainer` for defining the initial application state.
+
+> _*NOTE*_: The TransientStore mentioned above is an in-memory implementation of the KVStore for state that is not persisted.
+
+> _*NOTE*_: Pay attention to how the modules are initiated: the order matters! Here the sequence goes Auth --> Bank --> Feecollection --> Staking --> Distribution --> Slashing, then the hooks were set for the staking module. This is because some of these modules depend on others existing before they can be used.
+
+The `initChainer` defines how accounts in `genesis.json` are mapped into the application state on initial chain start. The `ExportAppStateAndValidators` function helps bootstrap the initial state for the application. You don't need to worry too much about either of these for now. We also need to add a few more methods to our app `BeginBlocker`, `EndBlocker` and `LoadHeight`.
 
 
 ## Go Entry Points
 
+In Golang the convention is to place files that compile to a binary in the `./cmd` folder of a project. For your application there are 2 binaries need to create:
 
+- `nsd`: This binary is similar to `bitcoind` or other cryptocurrency daemons in that it maintains p2p connections, propagates transactions, handles local storage and provides an RPC interface to interact with the network. In this case, Tendermint is used for networking and transaction ordering.
+- `nscli`: This binary provides commands that allow users to interact with the application.
+
+To get started create two files in your project directory that will instantiate these binaries:
+
+- `./cmd/nsd/main.go`
+    - Most of the code combines the CLI commands from Tendermint, Cosmos-SDK and the Nameservice app module.
+- `./cmd/nscli/main.go`
+    - The code combines the CLI commands from Tendermint, Cosmos-SDK and the Nameservice app module.
+    - The [`cobra` CLI documentation](http://github.com/spf13/cobra) will help with understanding the above code.
+    - You can see the `ModuleClient` defined earlier in action here.
+    - Note how the routes are included in the `registerRoutes` function.
 
 ## Go Mod & Makefile
 
+***go.mod***
 
+Golang has a few dependency management tools. In this tutorial you will be using [`Go Modules`](https://github.com/golang/go/wiki/Modules). `Go Modules` uses a `go.mod` file in the root of the repository to define what dependencies the application needs. Cosmos SDK apps currently depend on specific versions of some libraries.
+
+- `./go.mod`
+
+***Makefile***
+
+Help users build your application by writing a `./Makefile` in the root directory that includes common commands:
+
+> _*NOTE*_: The below Makefile contains some of same commands as the Cosmos SDK and Tendermint Makefiles.
+
+- `./nameservice/Makefile`
+- `./nameservice/Makefile.ledger`
 
 ## Building the `nameservice` application
 
