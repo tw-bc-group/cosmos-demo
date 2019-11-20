@@ -7,10 +7,25 @@ This repo is target to give developers a hands on guide to quickly build up a bl
   For now, section two hasn`t started yet, TBC soon.
 
 
+### Content
+- Section One - Building a Blockchain via Cosmos SDK
+  - Intro of Cosmos-SDK
+  - DApp Context and Design
+  - Entry of Cosmos SDK - AppModule
+  - GenesisState
+  - Types
+  - Keeper
+  - Message
+  - Handler
+  - Codec
+  - Command
+  - App <-- AppBase
+  - Go Entry Points
+  - Go Mod & Makefile
+  - Compile & Build
+  - Run & Test
 
-# Secion One - Building a Blockchain by Cosmos SDK
-
-
+# Section One - Building a Blockchain by Cosmos SDK
 
 ## Introdution of Cosmos-SDK
 
@@ -249,7 +264,7 @@ App module can also expose a REST interface to allow programatic access to the m
     - The [`BaseReq`](https://godoc.org/github.com/cosmos/cosmos-sdk/client/utils#BaseReq) contains the basic required fields for making a transaction (which key to use, how to decode it, which chain you are on, etc...) and is designed to be embedded as shown.
     - `baseReq.ValidateBasic` handles setting the response code for you and therefore you don't need to worry about handling errors or successes when using those functions
 
-## App <-- Appbase
+## App <-- AppBase
 
 Now that app module is ready, it can be incorporated in the `./app.go` file, along with the other two modules [`auth`](https://godoc.org/github.com/cosmos/cosmos-sdk/x/auth) and [`bank`](https://godoc.org/github.com/cosmos/cosmos-sdk/x/bank). Let's look at how to adding new nameservice module to the imports `	"github.com/arthaszeng/nameservice/x/nameservice"`.<br/>
 
@@ -342,7 +357,7 @@ nscli version
 ```
 
 
-## Running the live network and using the commands
+## Running & testing
 
 To initialize configuration and a `genesis.json` file for your application and an account for the transactions, start by running:
 
