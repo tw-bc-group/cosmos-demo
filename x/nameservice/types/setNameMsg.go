@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 type MsgSetName struct {
@@ -11,7 +10,7 @@ type MsgSetName struct {
 	Owner sdk.AccAddress `json:"owner"`
 }
 
-const RouteKey = types.ModuleName
+const RouteKey = ModuleName
 
 var (
 	msgType = "set_name"
